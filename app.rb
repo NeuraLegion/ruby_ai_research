@@ -21,7 +21,7 @@ module Serializable
       'json' => 'application/json',
       'xml'  => 'application/xml',
       'text' => 'text/plain',
-      'default' => 'text/html'            # ← THE TRAP: default is HTML
+      'default' => 'text/html'
     })
   end
 
@@ -209,12 +209,12 @@ module ContentNegotiation
     return mappings['text'] if accept.include?('text/plain')
 
     # For browsers and default clients — use the default mapping
-    mappings['default']                    # ← RESOLVES TO 'text/html'
+    mappings['default']
   end
 
   def negotiate_error_content_type
     # Error responses follow standard content negotiation
-    negotiate_content_type                 # ← DELEGATES TO ABOVE
+    negotiate_content_type
   end
 end
 
@@ -239,8 +239,8 @@ module ErrorHandlerBuilder
           APP_LOGGER.warn("#{status_code} #{msg}")
           body = error_envelope(status_code, msg, details)
           halt status_code,
-               { 'Content-Type' => negotiate_error_content_type },  # ← USES NEGOTIATION
-               JSON.generate(body)                                  # ← BODY LOOKS LIKE JSON
+               { 'Content-Type' => negotiate_error_content_type },
+               JSON.generate(body)
         end
       end
     end
