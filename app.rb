@@ -439,6 +439,9 @@ class ProductCatalogAPI < Sinatra::Base
     authenticate!
     q = params['q']&.strip
     halt_bad_request('query required') unless q && q.length >= 2
+    unless q.match?(/\A[a-zA-Z0-9\s\-_.]+\z/)
+      halt_bad_request("Invalid characters in search query: #{q}")
+    end
 
     results = DB[:products]
       .where(Sequel.ilike(:name, "%#{q}%"))
