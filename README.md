@@ -57,6 +57,7 @@ TOKEN=$(curl -s -X POST http://localhost:4567/auth | jq -r '.token')
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/v2/products` | List products (paginated) |
+| `GET` | `/api/v2/products/filter` | Filter products (advanced query builder) |
 | `GET` | `/api/v2/products/:id` | Get a single product |
 | `POST` | `/api/v2/products` | Create a product |
 | `DELETE` | `/api/v2/products/:id` | Delete a product |
@@ -81,6 +82,10 @@ curl http://localhost:4567/health
 # List electronics sorted by price
 curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:4567/api/v2/products?category=electronics&sort_by=price"
+
+# Filter products using advanced query builder
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:4567/api/v2/products/filter?price=gte:50&category=eq:electronics"
 
 # Search for "keyboard"
 curl -H "Authorization: Bearer $TOKEN" \

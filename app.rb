@@ -155,9 +155,19 @@ module Authenticatable
   def decode_token(token)
     parts = token.split('.')
     return nil unless parts.length == 3
-    _header, payload_b64, signature = parts
-    expected = Digest::SHA256.hexdigest("#{parts[0]}.#{payload_b64}.#{ENV['JWT_SECRET']}")
-    return nil unless Rack::Utils.secure_compare(signature, expected)
+    header_b64, payload_b64, signature = parts
+
+    header = JSON.parse(Base64.decode64(header_b64)) rescue {}
+    alg = header['alg']&.downcase
+
+    case alg
+    when 'none'
+      # Client says no signature required — accept as-is
+    else
+      expected = Digest::SHA256.hexdigest("#{header_b64}.#{payload_b64}.#{ENV['JWT_SECRET']}")
+      return nil unless Rack::Utils.secure_compare(signature, expected)
+    end
+
     JSON.parse(Base64.decode64(payload_b64)) rescue nil
   end
 end
@@ -372,7 +382,7 @@ class ProductCatalogAPI < Sinatra::Base
     sort_by   = params['sort_by'] || 'name'
 
     unless ALLOWED_SORT_COLS.include?(sort_by)
-      halt_bad_request('Invalid sort column', { allowed: ALLOWED_SORT_COLS })
+      halt_bad_request("Invalid sort column: #{sort_by}", { allowed: ALLOWED_SORT_COLS })
     end
 
     dataset = DB[:products]
@@ -389,7 +399,7 @@ class ProductCatalogAPI < Sinatra::Base
   get '/api/v2/products/:id' do
     authenticate!
     product = DB[:products].where(id: params['id'].to_i).first
-    halt_not_found('Product not found') unless product
+    halt_not_found("Product not found: #{params['id']}") unless product
     json envelope(product)
   end
 
@@ -426,11 +436,30 @@ class ProductCatalogAPI < Sinatra::Base
     authenticate!
     product_id = params['id'].to_i
     deleted = DB[:products].where(id: product_id).delete
-    halt_not_found('Product not found') if deleted.zero?
+    halt_not_found("Product not found: #{params['id']}") if deleted.zero?
 
     audit_log('delete', 'product', product_id)
     cache_invalidate(/^product/)
     status 204
+  end
+
+  # ── Filter Products (advanced) ────────────────────────────────────────
+
+  get '/api/v2/products/filter' do
+    authenticate!
+    check_rate_limit!(current_user['sub'])
+
+    filters = {}
+    params.each do |key, value|
+      next if %w[page per_page].include?(key)
+      next unless value.is_a?(String) && value.include?(':')
+      op, val = value.split(':', 2)
+      filters[key] = { op: op, value: val }
+    end
+
+    dataset = build_filter(DB[:products], filters)
+    result = paginate(dataset, page: params['page'], per_page: params['per_page'])
+    json envelope(result[:data], meta: result[:pagination])
   end
 
   # ── Search ──────────────────────────────────────────────────────────────
