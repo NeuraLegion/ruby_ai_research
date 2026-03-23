@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('DELETE /api/v2/products/123', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['bopla', 'id_enumeration', 'sqli', 'csrf', 'audit_logging'],
+      tests: ['bopla', 'id_enumeration', 'audit_logging', 'rate_limiting', 'authentication'],
       attackParamLocations: [AttackParamLocation.PATH, AttackParamLocation.HEADER],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',

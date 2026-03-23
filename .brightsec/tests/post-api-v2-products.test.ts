@@ -21,12 +21,12 @@ after(() => runner.clear());
 test('POST /api/v2/products', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['sqli', 'xss', 'csrf', 'business_constraint_bypass'],
+      tests: ['sqli', 'xss', 'csrf', 'business_constraint_bypass', 'secret_tokens'],
       attackParamLocations: [AttackParamLocation.BODY, AttackParamLocation.HEADER],
       starMetadata: {
-        "code_source": "NeuraLegion/ruby_ai_research:main",
-        "databases": ["PostgreSQL"],
-        "user_roles": null
+        code_source: "NeuraLegion/ruby_ai_research:main",
+        databases: ["PostgreSQL"],
+        user_roles: null
       },
       poolSize: +process.env.SECTESTER_SCAN_POOL_SIZE || undefined
     })

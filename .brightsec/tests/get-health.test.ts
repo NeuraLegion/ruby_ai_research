@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('GET /health', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['ssrf', 'osi', 'full_path_disclosure', 'improper_asset_management'],
+      tests: ['ssrf', 'sqli', 'full_path_disclosure', 'insecure_tls_configuration'],
       attackParamLocations: [AttackParamLocation.HEADER],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',

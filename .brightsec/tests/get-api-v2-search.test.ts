@@ -36,8 +36,8 @@ test('GET /api/v2/search?q=:query', { signal: AbortSignal.timeout(timeout) }, as
       method: HttpMethod.GET,
       url: `${baseUrl}/api/v2/search?q=example%20query`,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer <token>',
+        'Content-Type': 'application/json',
         'X-Request-Id': '<generated-uuid>'
       },
       auth: process.env.BRIGHT_AUTH_ID

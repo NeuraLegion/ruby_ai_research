@@ -21,12 +21,12 @@ after(() => runner.clear());
 test('GET /api/v2/products/filter', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['sqli', 'business_constraint_bypass', 'xss', 'rate_limit', 'csrf'],
+      tests: ['sqli', 'business_constraint_bypass', 'rate_limit', 'xss', 'csrf'],
       attackParamLocations: [AttackParamLocation.QUERY, AttackParamLocation.HEADER],
       starMetadata: {
-        "code_source": "NeuraLegion/ruby_ai_research:main",
-        "databases": ["PostgreSQL"],
-        "user_roles": null
+        code_source: 'NeuraLegion/ruby_ai_research:main',
+        databases: ['PostgreSQL'],
+        user_roles: null
       },
       poolSize: +process.env.SECTESTER_SCAN_POOL_SIZE || undefined
     })
@@ -34,7 +34,7 @@ test('GET /api/v2/products/filter', { signal: AbortSignal.timeout(timeout) }, as
     .timeout(timeout)
     .run({
       method: HttpMethod.GET,
-      url: `${baseUrl}/api/v2/products/filter?category=electronics&min_price=100&sort_by=name&page=1&per_page=10`,
+      url: `${baseUrl}/api/v2/products/filter?category=electronics&min_price=100&sort_by=name&page=1&per_page=25`,
       headers: {
         'Content-Type': 'application/json',
         'X-Request-Id': 'generated-uuid'
