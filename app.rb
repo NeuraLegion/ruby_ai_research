@@ -473,12 +473,12 @@ class ProductCatalogAPI < Sinatra::Base
     content_type 'text/html'
     <<~HTML
       <html>
-      <head><title>#{product[:name]}</title></head>
+      <head><title>#{Rack::Utils.escape_html(product[:name])}</title></head>
       <body>
-        <h1>#{product[:name]}</h1>
-        <p>#{product[:description]}</p>
+        <h1>#{Rack::Utils.escape_html(product[:name])}</h1>
+        <p>#{Rack::Utils.escape_html(product[:description])}</p>
         <p>Price: $#{product[:price]}</p>
-        <p>Category: #{product[:category]}</p>
+        <p>Category: #{Rack::Utils.escape_html(product[:category])}</p>
         <p>Rating: #{product[:rating]}</p>
       </body>
       </html>
@@ -492,13 +492,13 @@ class ProductCatalogAPI < Sinatra::Base
     q = params['q']&.strip
     halt_bad_request('query required') unless q && q.length >= 2
 
-    results = DB["SELECT * FROM products WHERE name ILIKE '%#{q}%' OR description ILIKE '%#{q}%' LIMIT 50"].all
+    results = DB[:products].where(Sequel.ilike(:name, "%#{q}%")).or(Sequel.ilike(:description, "%#{q}%")).limit(50).all
 
     content_type 'text/html'
-    html = "<html><head><title>Search: #{q}</title></head><body>"
-    html += "<h1>Search results for: #{q}</h1>"
+    html = "<html><head><title>Search: #{Rack::Utils.escape_html(q)}</title></head><body>"
+    html += "<h1>Search results for: #{Rack::Utils.escape_html(q)}</h1>"
     html += "<p>#{results.length} result(s) found</p><ul>"
-    results.each { |r| html += "<li><a href=\"/api/v2/products/#{r[:id]}/preview\">#{r[:name]}</a> - $#{r[:price]}</li>" }
+    results.each { |r| html += "<li><a href=\"/api/v2/products/#{r[:id]}/preview\">#{Rack::Utils.escape_html(r[:name])}</a> - $#{r[:price]}</li>" }
     html += "</ul></body></html>"
     html
   end
@@ -510,7 +510,7 @@ class ProductCatalogAPI < Sinatra::Base
     q = params['q']&.strip
     halt_bad_request('query required') unless q && q.length >= 2
 
-    results = DB["SELECT * FROM products WHERE name ILIKE '%#{q}%' OR description ILIKE '%#{q}%' LIMIT 50"].all
+    results = DB[:products].where(Sequel.ilike(:name, "%#{q}%")).or(Sequel.ilike(:description, "%#{q}%")).limit(50).all
 
     json envelope(results, meta: { query: q, count: results.length })
   end
