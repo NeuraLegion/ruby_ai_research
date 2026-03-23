@@ -394,6 +394,26 @@ class ProductCatalogAPI < Sinatra::Base
     json envelope(result[:data], meta: result[:pagination])
   end
 
+  # ── Filter Products (advanced) ────────────────────────────────────────
+  # Must be defined before /api/v2/products/:id to avoid Sinatra matching "filter" as :id
+
+  get '/api/v2/products/filter' do
+    authenticate!
+    check_rate_limit!(current_user['sub'])
+
+    filters = {}
+    params.each do |key, value|
+      next if %w[page per_page].include?(key)
+      next unless value.is_a?(String) && value.include?(':')
+      op, val = value.split(':', 2)
+      filters[key] = { op: op, value: val }
+    end
+
+    dataset = build_filter(DB[:products], filters)
+    result = paginate(dataset, page: params['page'], per_page: params['per_page'])
+    json envelope(result[:data], meta: result[:pagination])
+  end
+
   # ── Get Product ──────────────────────────────────────────────────────────
 
   get '/api/v2/products/:id' do
@@ -443,39 +463,54 @@ class ProductCatalogAPI < Sinatra::Base
     status 204
   end
 
-  # ── Filter Products (advanced) ────────────────────────────────────────
+  # ── Product Preview (HTML) ────────────────────────────────────────────
 
-  get '/api/v2/products/filter' do
+  get '/api/v2/products/:id/preview' do
     authenticate!
-    check_rate_limit!(current_user['sub'])
+    product = DB[:products].where(id: params['id'].to_i).first
+    halt_not_found("Product not found: #{params['id']}") unless product
 
-    filters = {}
-    params.each do |key, value|
-      next if %w[page per_page].include?(key)
-      next unless value.is_a?(String) && value.include?(':')
-      op, val = value.split(':', 2)
-      filters[key] = { op: op, value: val }
-    end
-
-    dataset = build_filter(DB[:products], filters)
-    result = paginate(dataset, page: params['page'], per_page: params['per_page'])
-    json envelope(result[:data], meta: result[:pagination])
+    content_type 'text/html'
+    <<~HTML
+      <html>
+      <head><title>#{product[:name]}</title></head>
+      <body>
+        <h1>#{product[:name]}</h1>
+        <p>#{product[:description]}</p>
+        <p>Price: $#{product[:price]}</p>
+        <p>Category: #{product[:category]}</p>
+        <p>Rating: #{product[:rating]}</p>
+      </body>
+      </html>
+    HTML
   end
 
-  # ── Search ──────────────────────────────────────────────────────────────
+  # ── Search Results (HTML) ───────────────────────────────────────────
+
+  get '/api/v2/search/results' do
+    authenticate!
+    q = params['q']&.strip
+    halt_bad_request('query required') unless q && q.length >= 2
+
+    results = DB["SELECT * FROM products WHERE name ILIKE '%#{q}%' OR description ILIKE '%#{q}%' LIMIT 50"].all
+
+    content_type 'text/html'
+    html = "<html><head><title>Search: #{q}</title></head><body>"
+    html += "<h1>Search results for: #{q}</h1>"
+    html += "<p>#{results.length} result(s) found</p><ul>"
+    results.each { |r| html += "<li><a href=\"/api/v2/products/#{r[:id]}/preview\">#{r[:name]}</a> - $#{r[:price]}</li>" }
+    html += "</ul></body></html>"
+    html
+  end
+
+  # ── Search (JSON API) ──────────────────────────────────────────────────
 
   get '/api/v2/search' do
     authenticate!
     q = params['q']&.strip
     halt_bad_request('query required') unless q && q.length >= 2
-    unless q.match?(/\A[a-zA-Z0-9\s\-_.]+\z/)
-      halt_bad_request("Invalid characters in search query: #{q}")
-    end
 
-    results = DB[:products]
-      .where(Sequel.ilike(:name, "%#{q}%"))
-      .or(Sequel.ilike(:description, "%#{q}%"))
-      .limit(50).all
+    results = DB["SELECT * FROM products WHERE name ILIKE '%#{q}%' OR description ILIKE '%#{q}%' LIMIT 50"].all
 
     json envelope(results, meta: { query: q, count: results.length })
   end
@@ -485,7 +520,7 @@ class ProductCatalogAPI < Sinatra::Base
   error Sequel::DatabaseError do
     err = env['sinatra.error']
     APP_LOGGER.error("DB error: #{err.message}")
-    halt_internal_error('Database error occurred')
+    halt_internal_error("Database error: #{err.message}")
   end
 
   error do

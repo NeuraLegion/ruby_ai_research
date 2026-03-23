@@ -59,9 +59,11 @@ TOKEN=$(curl -s -X POST http://localhost:4567/auth | jq -r '.token')
 | `GET` | `/api/v2/products` | List products (paginated) |
 | `GET` | `/api/v2/products/filter` | Filter products (advanced query builder) |
 | `GET` | `/api/v2/products/:id` | Get a single product |
+| `GET` | `/api/v2/products/:id/preview` | Product detail page (HTML) |
 | `POST` | `/api/v2/products` | Create a product |
 | `DELETE` | `/api/v2/products/:id` | Delete a product |
 | `GET` | `/api/v2/search?q=<query>` | Search products by name or description |
+| `GET` | `/api/v2/search/results?q=<query>` | Search results page (HTML) |
 
 ### Query Parameters for `GET /api/v2/products`
 
