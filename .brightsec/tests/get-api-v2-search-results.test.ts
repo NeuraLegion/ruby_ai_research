@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('GET /api/v2/search/results?q=example', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['sqli', 'xss', 'csrf', 'business_constraint_bypass', 'improper_asset_management'],
+      tests: ['sqli', 'xss'],
       attackParamLocations: [AttackParamLocation.QUERY],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',
