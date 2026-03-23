@@ -21,12 +21,12 @@ after(() => runner.clear());
 test('DELETE /api/v2/products/123', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['bopla', 'id_enumeration', 'audit_logging', 'rate_limiting', 'authentication'],
+      tests: ['bopla', 'csrf', 'id_enumeration', 'sqli', 'xss'],
       attackParamLocations: [AttackParamLocation.PATH, AttackParamLocation.HEADER],
       starMetadata: {
-        code_source: 'NeuraLegion/ruby_ai_research:main',
-        databases: ['PostgreSQL'],
-        user_roles: null
+        "code_source": "NeuraLegion/ruby_ai_research:main",
+        "databases": ["PostgreSQL"],
+        "user_roles": null
       },
       poolSize: +process.env.SECTESTER_SCAN_POOL_SIZE || undefined
     })
@@ -36,8 +36,8 @@ test('DELETE /api/v2/products/123', { signal: AbortSignal.timeout(timeout) }, as
       method: HttpMethod.DELETE,
       url: `${baseUrl}/api/v2/products/123`,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer <token>',
+        'Content-Type': 'application/json',
         'X-Request-Id': '<generated-uuid>'
       },
       auth: process.env.BRIGHT_AUTH_ID

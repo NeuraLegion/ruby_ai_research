@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('GET /api/v2/products/123', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['bopla', 'id_enumeration', 'sqli', 'xss', 'csrf', 'improper_asset_management'],
+      tests: ['sqli', 'id_enumeration', 'bopla', 'csrf', 'improper_asset_management'],
       attackParamLocations: [AttackParamLocation.PATH],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',
@@ -35,6 +35,7 @@ test('GET /api/v2/products/123', { signal: AbortSignal.timeout(timeout) }, async
     .run({
       method: HttpMethod.GET,
       url: `${baseUrl}/api/v2/products/123`,
+      headers: { 'Authorization': 'Bearer <token>' },
       auth: process.env.BRIGHT_AUTH_ID
     });
 });

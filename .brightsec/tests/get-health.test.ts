@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('GET /health', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['ssrf', 'sqli', 'full_path_disclosure', 'insecure_tls_configuration'],
+      tests: ['full_path_disclosure', 'insecure_tls_configuration', 'csrf', 'rate_limit'],
       attackParamLocations: [AttackParamLocation.HEADER],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',
@@ -35,7 +35,7 @@ test('GET /health', { signal: AbortSignal.timeout(timeout) }, async () => {
     .run({
       method: HttpMethod.GET,
       url: `${baseUrl}/health`,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'X-Request-Id': 'generated-uuid' },
       auth: process.env.BRIGHT_AUTH_ID
     });
 });

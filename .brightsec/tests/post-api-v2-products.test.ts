@@ -21,11 +21,11 @@ after(() => runner.clear());
 test('POST /api/v2/products', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['sqli', 'xss', 'csrf', 'business_constraint_bypass', 'secret_tokens'],
+      tests: ['sqli', 'xss', 'csrf', 'bopla', 'business_constraint_bypass'],
       attackParamLocations: [AttackParamLocation.BODY, AttackParamLocation.HEADER],
       starMetadata: {
-        code_source: "NeuraLegion/ruby_ai_research:main",
-        databases: ["PostgreSQL"],
+        code_source: 'NeuraLegion/ruby_ai_research:main',
+        databases: ['PostgreSQL'],
         user_roles: null
       },
       poolSize: +process.env.SECTESTER_SCAN_POOL_SIZE || undefined
@@ -36,14 +36,14 @@ test('POST /api/v2/products', { signal: AbortSignal.timeout(timeout) }, async ()
       method: HttpMethod.POST,
       url: `${baseUrl}/api/v2/products`,
       body: {
-        name: "Sample Product",
+        name: 'Sample Product',
         price: 19.99,
-        category: "Electronics",
-        description: "A sample electronic product."
+        category: 'Electronics',
+        description: 'A sample electronic product.'
       },
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer <token>',
+        Authorization: 'Bearer <token>',
         'X-Request-Id': '<generated-uuid>'
       },
       auth: process.env.BRIGHT_AUTH_ID

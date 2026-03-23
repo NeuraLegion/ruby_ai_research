@@ -21,8 +21,8 @@ after(() => runner.clear());
 test('GET /api/v2/products', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['sqli', 'business_constraint_bypass', 'improper_asset_management', 'xss', 'csrf'],
-      attackParamLocations: [AttackParamLocation.QUERY, AttackParamLocation.HEADER],
+      tests: ['sqli', 'business_constraint_bypass', 'xss', 'csrf', 'rate_limit', 'improper_asset_management'],
+      attackParamLocations: [AttackParamLocation.QUERY],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',
         databases: ['PostgreSQL'],
@@ -36,11 +36,8 @@ test('GET /api/v2/products', { signal: AbortSignal.timeout(timeout) }, async () 
       method: HttpMethod.GET,
       url: `${baseUrl}/api/v2/products?category=electronics&min_price=100&sort_by=name&page=1&per_page=25`,
       headers: {
-        Authorization: 'Bearer <token>',
-        'X-Request-Id': '<generated-uuid>',
-        'X-Trace-Id': '<generated-hex>',
-        'X-Client-Version': '<client-version>',
-        'X-Forwarded-For': '<client-ip>'
+        'Content-Type': 'application/json',
+        'X-Request-Id': '<generated_request_id>'
       },
       auth: process.env.BRIGHT_AUTH_ID
     });

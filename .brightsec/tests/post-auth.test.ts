@@ -21,7 +21,7 @@ after(() => runner.clear());
 test('POST /auth', { signal: AbortSignal.timeout(timeout) }, async () => {
   await runner
     .createScan({
-      tests: ['jwt', 'secret_tokens', 'sqli', 'csrf', 'xss'],
+      tests: ['jwt', 'sqli', 'xss', 'csrf', 'secret_tokens'],
       attackParamLocations: [AttackParamLocation.BODY],
       starMetadata: {
         code_source: 'NeuraLegion/ruby_ai_research:main',
@@ -36,8 +36,9 @@ test('POST /auth', { signal: AbortSignal.timeout(timeout) }, async () => {
       method: HttpMethod.POST,
       url: `${baseUrl}/auth`,
       body: {
-        username: 'testuser',
-        password: 'testpass'
+        sub: 'scanner',
+        iat: 1697049600,
+        name: 'DAST Scanner'
       },
       headers: { 'Content-Type': 'application/json' },
       auth: process.env.BRIGHT_AUTH_ID
